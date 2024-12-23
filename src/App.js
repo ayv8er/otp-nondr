@@ -8,6 +8,7 @@ export default function App() {
   const handleLogin = async () => {
     try {
       await magic.auth.loginWithEmailOTP({ email });
+      setEmail("");
       getUserMetadata();
     } catch (err) {
       console.log(err);
@@ -32,6 +33,19 @@ export default function App() {
     }
   };
 
+  const handleToggleMfa = async () => {
+    try {
+      if (user.isMfaEnabled) {
+        await magic.user.disableMFA({ showUI: true});
+      } else{
+        await magic.user.enableMFA({ showUI: true});
+      }
+      getUserMetadata();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     getUserMetadata();
   }, []);
@@ -40,7 +54,8 @@ export default function App() {
     <main>
       <h1>{user ? user.email : "Not logged in"}</h1>
       {user ? (
-        <div>
+        <div className="button-container">
+          <button onClick={handleToggleMfa}>{ user.isMfaEnabled ? "Disable MFA" : "Enable MFA" }</button>
           <button onClick={handleLogout}>Logout</button>
         </div>
       ) : (
@@ -55,11 +70,15 @@ export default function App() {
         </div>
       )}
       <div className="description">
-        <h3>Email OTP + No New Device Registration</h3>
+        <h3>Email OTP + MFA + No New Device Registration</h3>
         <h4>
-          User submits email, then receives emailed
-          6 digit OTP. User gets it from email inbox and returns to submit OTP. 
-          This protects users from phishing.
+          User submits email, receives emailed
+          6 digit OTP, submits it and logs in.
+          OTP prevents phishing attacks via magic link.
+        </h4>
+        <h4>
+          User can enable MFA after logging in.
+          Subsequent logins will require MFA.
         </h4>
       </div>
     </main>
